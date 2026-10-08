@@ -29,8 +29,7 @@ export const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
 
-  const [deletingTodo, setDeletingTodo] = useState<number | null>(null);
-  const [updatingTodos, setUpdatingTodos] = useState<number[]>([]);
+  const [processingTodosIds, setProcessingTodosIds] = useState<number[]>([]);
   const [editingTodoId, setEditingTodoId] = useState<number | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -40,11 +39,11 @@ export const App: React.FC = () => {
     setLoading(true);
 
     getTodos()
-      .then(setTodos)
-      .catch(() => {
-        setError(ERROR_MESSAGES.load);
-      })
-      .finally(() => setLoading(false));
+    .then(setTodos)
+    .catch(() => {
+      setError(ERROR_MESSAGES.load);
+    })
+    .finally(() => setLoading(false));
   }, []);
 
   //автоматичне приховування помилок
@@ -64,10 +63,10 @@ export const App: React.FC = () => {
 
   //фокус після створення тудушки
   useEffect(() => {
-    if (tempTodo === null && deletingTodo === null) {
+    if (tempTodo === null && processingTodosIds.length === 0) {
       inputRef.current?.focus();
     }
-  }, [tempTodo, deletingTodo]);
+  }, [tempTodo, processingTodosIds]);
 
   const filteredTodos = useMemo(
     () => getFilteredTodos({ todos, status }),
@@ -107,7 +106,7 @@ export const App: React.FC = () => {
 
   const handleDelete = async (todoId: number) => {
     setError('');
-    setDeletingTodo(todoId);
+    setProcessingTodosIds([todoId]);
 
     try {
       await deleteTodo(todoId);
@@ -116,20 +115,23 @@ export const App: React.FC = () => {
       setError(ERROR_MESSAGES.delete);
       throw err;
     } finally {
-      setDeletingTodo(null);
+      setProcessingTodosIds([]);
     }
   };
 
   const handleClearCompleted = () => {
     setError('');
+
     const completedTodos = todos.filter(todo => todo.completed);
     const deleteRequests = completedTodos.map(todo => deleteTodo(todo.id));
+
+    setProcessingTodosIds(completedTodos.map(todo => todo.id));
 
     Promise.allSettled(deleteRequests).then(result => {
       const hasError = result.some(item => item.status === 'rejected');
       const successRequest = completedTodos
-        .filter((todo, index) => result[index].status === 'fulfilled')
-        .map(todo => todo.id);
+      .filter((todo, index) => result[index].status === 'fulfilled')
+      .map(todo => todo.id);
 
       setTodos(currentTodos =>
         currentTodos.filter(todo => !successRequest.includes(todo.id)),
@@ -140,12 +142,14 @@ export const App: React.FC = () => {
       if (hasError) {
         setError(ERROR_MESSAGES.delete);
       }
+
+      setProcessingTodosIds([]);
     });
   };
 
   const handleToggle = async (todoId: number, completed: boolean) => {
     setError('');
-    setUpdatingTodos([todoId]);
+    setProcessingTodosIds([todoId]);
 
     try {
       await updateTodo(todoId, completed);
@@ -164,7 +168,7 @@ export const App: React.FC = () => {
     } catch {
       setError(ERROR_MESSAGES.update);
     } finally {
-      setUpdatingTodos([]);
+      setProcessingTodosIds([]);
     }
   };
 
@@ -175,13 +179,13 @@ export const App: React.FC = () => {
       updateTodo(todo.id, newCompleted),
     );
 
-    setUpdatingTodos(todosToUpdate.map(todo => todo.id));
+    setProcessingTodosIds(todosToUpdate.map(todo => todo.id));
 
     Promise.allSettled(updateRequests).then(result => {
       const hasError = result.some(item => item.status === 'rejected');
       const successRequest = todosToUpdate
-        .filter((todo, index) => result[index].status === 'fulfilled')
-        .map(todo => todo.id);
+      .filter((todo, index) => result[index].status === 'fulfilled')
+      .map(todo => todo.id);
 
       setTodos(currentTodos =>
         currentTodos.map(todo => {
@@ -202,7 +206,7 @@ export const App: React.FC = () => {
         setError(ERROR_MESSAGES.update);
       }
 
-      setUpdatingTodos([]);
+      setProcessingTodosIds([]);
     });
   };
 
@@ -237,7 +241,7 @@ export const App: React.FC = () => {
       return;
     }
 
-    setUpdatingTodos([todo.id]);
+    setProcessingTodosIds([todo.id]);
 
     try {
       await updateTodoTitle(todo.id, normalizedTitle);
@@ -257,7 +261,7 @@ export const App: React.FC = () => {
     } catch {
       setError(ERROR_MESSAGES.update);
     } finally {
-      setUpdatingTodos([]);
+      setProcessingTodosIds([]);
     }
   };
 
@@ -290,9 +294,8 @@ export const App: React.FC = () => {
             todos={filteredTodos}
             tempTodo={tempTodo}
             handleDelete={handleDelete}
-            deletingTodo={deletingTodo}
+            processingTodosIds={processingTodosIds}
             handleToggle={handleToggle}
-            updatingTodos={updatingTodos}
             handleEdit={handleEdit}
             handleCancelEdit={handleCancelEdit}
             editingTodo={editingTodoId}

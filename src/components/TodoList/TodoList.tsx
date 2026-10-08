@@ -7,8 +7,7 @@ import '../../styles/todo.scss';
 type TodoListProps = {
   todos: Todo[];
   tempTodo: Todo | null;
-  deletingTodo: number | null;
-  updatingTodos: number[];
+  processingTodosIds: number[];
   editingTodo: number | null;
   editTitle: string;
   setEditTitle: (title: string) => void;
@@ -22,8 +21,7 @@ type TodoListProps = {
 export const TodoList = ({
   todos,
   tempTodo,
-  deletingTodo,
-  updatingTodos,
+  processingTodosIds,
   editingTodo,
   editTitle,
   setEditTitle,
@@ -38,8 +36,7 @@ export const TodoList = ({
       {/* This is a completed todo */}
       {todos.map(todo => {
         const isEditing = editingTodo === todo.id;
-        const isActiveLoader =
-          deletingTodo === todo.id || updatingTodos.includes(todo.id);
+        const isActiveLoader = processingTodosIds.includes(todo.id);
 
         return isEditing ? (
           <div data-cy="Todo" className="todo" key={todo.id}>
@@ -107,8 +104,7 @@ export const TodoList = ({
             <div
               data-cy="TodoLoader"
               className={cn('modal overlay', {
-                'is-active':
-                  deletingTodo === todo.id || updatingTodos.includes(todo.id),
+                'is-active': isActiveLoader,
               })}
             >
               <div className="modal-background has-background-white-ter" />
