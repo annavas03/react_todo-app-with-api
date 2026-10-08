@@ -39,11 +39,11 @@ export const App: React.FC = () => {
     setLoading(true);
 
     getTodos()
-    .then(setTodos)
-    .catch(() => {
-      setError(ERROR_MESSAGES.load);
-    })
-    .finally(() => setLoading(false));
+      .then(setTodos)
+      .catch(() => {
+        setError(ERROR_MESSAGES.load);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   //автоматичне приховування помилок
@@ -130,8 +130,8 @@ export const App: React.FC = () => {
     Promise.allSettled(deleteRequests).then(result => {
       const hasError = result.some(item => item.status === 'rejected');
       const successRequest = completedTodos
-      .filter((todo, index) => result[index].status === 'fulfilled')
-      .map(todo => todo.id);
+        .filter((todo, index) => result[index].status === 'fulfilled')
+        .map(todo => todo.id);
 
       setTodos(currentTodos =>
         currentTodos.filter(todo => !successRequest.includes(todo.id)),
@@ -184,8 +184,8 @@ export const App: React.FC = () => {
     Promise.allSettled(updateRequests).then(result => {
       const hasError = result.some(item => item.status === 'rejected');
       const successRequest = todosToUpdate
-      .filter((todo, index) => result[index].status === 'fulfilled')
-      .map(todo => todo.id);
+        .filter((todo, index) => result[index].status === 'fulfilled')
+        .map(todo => todo.id);
 
       setTodos(currentTodos =>
         currentTodos.map(todo => {
