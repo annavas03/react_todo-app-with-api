@@ -8,14 +8,11 @@ DEMO(https://annavas03.github.io/react_todo-app-with-api/)
 
 - React
 - TypeScript
-- Redux Toolkit
 - React Redux
 - REST API
 - SCSS
 - Bulma
 - Classnames
-- ESLint
-- Prettier
 
 ## Getting Started
 
